@@ -12,17 +12,16 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 1. RUTA EXPLÍCITA PARA LEVANTAR EL PORTAL DE NAVYSPEAK
-// Cuando el usuario digite /navyspeak o /navyspeak/, el servidor le entregará
-// directamente el archivo index.html que está en la carpeta navyspeak
-app.get("/navyspeak", (req, res) => {
-  res.sendFile(path.join(__dirname, "navyspeak", "index.html"));
-});
-
-// 2. SERVIR LOS RECURSOS ESTÁTICOS COMPARTIDOS Y MODULARES
-// Esto mapea las carpetas para que index.html encuentre styles.css y client.js de inmediato
+// 1. SERVIR EL PORTAL GENERAL DE BIENVENIDA (Carpeta public)
+// Al entrar a la raíz '/', Express cargará automáticamente './public/index.html'
 app.use("/", express.static(path.join(__dirname, "public")));
-app.use("/navyspeak", express.static(path.join(__dirname, "navyspeak")));
+
+// 2. VINCULAR EL ENRUTADOR DEL COMPONENTE INTERNO NAVYSPEAK
+// Importamos la lógica encapsulada de la subcarpeta navyspeak
+const navySpeakRouter = require("./navyspeak/router");
+
+// Acoplamos el enrutador para que responda bajo el prefijo '/navyspeak'
+app.use("/navyspeak", navySpeakRouter);
 
 // Marcador para la sección de Moodle
 app.get("/get-underway", (req, res) => {
@@ -31,7 +30,7 @@ app.get("/get-underway", (req, res) => {
   );
 });
 
-// Capturador de excepciones preventivo para inmunidad del proceso
+// Guardaespaldas de procesos para que el servidor nunca se apague por excepciones directas
 process.on("uncaughtException", (err) => {
   console.error(
     "Se capturó un error no controlado de forma segura:",
