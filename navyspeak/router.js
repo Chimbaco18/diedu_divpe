@@ -1,90 +1,30 @@
 /**
- * CONTROLADOR DE AUTENTICACIÓN REAL MYSQL
- * Archivo: navyspeak/router.js
+ * ENRUTADOR ESPECÍFICO DEL COMPONENTE NAVYSPEAK
+ * Archivo: ./navyspeak/router.js
  */
 
 const express = require("express");
-const mysql = require("mysql2");
+const path = require("path");
 const router = express.Router();
 
-// Inicializamos el Pool de conexiones usando las variables del hPanel
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "127.0.0.1",
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: 3306,
-  waitForConnections: true,
-  connectionLimit: 5,
-});
-const db = pool.promise();
+// Middleware intermedio para procesamiento de peticiones en este módulo
+router.use(express.json());
 
-// Servir estáticos locales del componente
+// 1. RUTA EXPLICÍTA PARA CONTROLAR EL LOGIN DE NAVYSPEAK
+// Cuando el usuario entre a /navyspeak o /navyspeak/, le enviamos su index.html dedicado
+router.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// 2. SERVIR ARCHIVOS VECINOS ESTÁTICOS EXCLUSIVOS (styles.css, client.js)
+// Esto permite que el index.html pueda jalar sus estilos y scripts sin problemas
 router.use("/", express.static(__dirname));
 
-// ENDPOINT DE AUTENTICACIÓN DEL PORTAL
-router.post("/api/login", async (req, res) => {
+// Endpoint interno para recibir las peticiones de autenticación en fases posteriores
+router.post("/api/login", (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.json({
-      success: false,
-      message: "Por favor, rellene todos los campos.",
-    });
-  }
-
-  try {
-    // Consultamos directo en la tabla 'users' sembrada en tu phpMyAdmin
-    const [rows] = await db.execute(
-      "SELECT id, full_name, role, is_active, password_hash, mfa_required FROM users WHERE LOWER(email) = ?",
-      [email.trim().toLowerCase()]
-    );
-
-    if (rows.length === 0) {
-      return res.json({
-        success: false,
-        message: "El usuario institucional no está registrado.",
-      });
-    }
-
-    const usuario = rows[0];
-
-    if (!usuario.is_active) {
-      return res.json({
-        success: false,
-        message: "Su usuario se encuentra inactivo en la división.",
-      });
-    }
-
-    // Validación de contraseña directa (Hash Bcrypt recomendado en fases posteriores)
-    if (usuario.password_hash === password) {
-      // Actualizamos auditoría de último acceso
-      await db.execute("UPDATE users SET last_login_at = NOW() WHERE id = ?", [
-        usuario.id,
-      ]);
-
-      return res.json({
-        success: true,
-        message: "Acceso concedido.",
-        user: {
-          id: usuario.id,
-          name: usuario.full_name,
-          role: usuario.role,
-          mfaRequired: usuario.mfa_required,
-        },
-      });
-    } else {
-      return res.json({ success: false, message: "Contraseña incorrecta." });
-    }
-  } catch (error) {
-    console.error("Error en BD NavySpeak:", error.message);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error interno en el servidor de datos.",
-      });
-  }
+  // Aquí se integrará la lógica de consulta SQL contra la tabla de Hostinger
+  res.json({ success: true, message: "Endpoint de comunicación activo." });
 });
 
 module.exports = router;
