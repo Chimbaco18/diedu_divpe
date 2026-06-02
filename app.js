@@ -1,21 +1,29 @@
-// Importación del framework web Express para la gestión de peticiones HTTP
+/**
+ * DOCUMENTACIÓN DEL SERVIDOR: PLATAFORMA DE BILINGÜISMO (DIEDU - DIVPE)
+ * Finalidad: Controlar el enrutamiento y servir las interfaces de usuario.
+ */
+
+// 1. IMPORTACIÓN DE MÓDULOS DE PROGRAMACIÓN
 const express = require("express");
 const app = express();
 const path = require("path");
 
-// Definición de la variable de entorno para el puerto del servidor
+// 2. CONFIGURACIÓN DE VARIABLES DE ENTORNO
+// PORT toma el puerto asignado automáticamente por Hostinger o usa el 3000 localmente.
 const PORT = process.env.PORT || 3000;
 
-// Configuración de la ruta principal para la interfaz de la División de Bilingüismo
+// 3. DEFINICIÓN DE RUTAS (CODELÓGICA DE EXPRESS)
+
+// Ruta Raíz: Renderiza el menú principal de la división
 app.get("/", (req, res) => {
-  // Estructura modular del menú de navegación
+  // Array de objetos para mapear la navegación de forma limpia y modular
   const secciones = [
     { nombre: "Inicio", url: "/" },
     { nombre: "Get Underway 2.0", url: "/get-underway" },
     { nombre: "NavySpeak", url: "/navyspeak" },
   ];
 
-  // Código de la vista principal utilizando un diseño responsivo adaptado con Tailwind CSS
+  // Envío del código HTML/CSS responsivo al navegador del cliente
   res.send(`
         <!DOCTYPE html>
         <html lang="es">
@@ -27,7 +35,7 @@ app.get("/", (req, res) => {
         </head>
         <body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans">
             
-            <!-- Barra de navegación institucional -->
+            <!-- BARRA DE NAVEGACIÓN INSTITUCIONAL -->
             <nav class="bg-[#002060] text-white p-4 shadow-md flex justify-between items-center px-6">
                 <span class="font-bold text-lg tracking-wider">ARC - BILINGÜISMO</span>
                 <div class="space-x-4">
@@ -40,29 +48,29 @@ app.get("/", (req, res) => {
                 </div>
             </nav>
 
-            <!-- Contenedor del portal central -->
+            <!-- CONTENEDOR CENTRAL -->
             <main class="max-w-4xl mx-auto my-auto text-center p-8 bg-white rounded-xl shadow-sm border border-slate-200 m-4">
                 <h1 class="text-3xl font-extrabold text-[#002060] mb-4">División de Bilingüismo</h1>
-                <p class="text-slate-600 mb-8">Portal oficial de administración de la Dirección de Educación Naval.</p>
+                <p class="text-slate-600 mb-8">Portal oficial de administración y control de programas de idiomas de la Dirección de Educación Naval.</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Enrutamiento a Moodle -->
+                    <!-- Tarjeta Get Underway 2.0 -->
                     <div class="p-6 border rounded-xl text-left border-slate-200 hover:shadow-md transition">
                         <h3 class="font-bold text-lg text-slate-800">Get Underway 2.0</h3>
-                        <p class="text-sm text-slate-500 mb-4">Curso interactivo de inglés especializado sobre la plataforma Moodle.</p>
+                        <p class="text-sm text-slate-500 mb-4">Curso interactivo de inglés especializado integrado con la plataforma Moodle.</p>
                         <a href="/get-underway" class="text-blue-600 text-sm font-semibold hover:underline">Ingresar al Curso →</a>
                     </div>
                     
-                    <!-- Enrutamiento a la APK -->
+                    <!-- Tarjeta NavySpeak -->
                     <div class="p-6 border rounded-xl text-left border-slate-200 hover:shadow-md transition">
                         <h3 class="font-bold text-lg text-slate-800">NavySpeak</h3>
-                        <p class="text-sm text-slate-500 mb-4">Aplicación móvil (APK). Descarga protegida y módulo de control de uso.</p>
+                        <p class="text-sm text-slate-500 mb-4">Aplicación móvil (APK). Módulo para la descarga y el control de uso de usuarios.</p>
                         <a href="/navyspeak" class="text-emerald-600 text-sm font-semibold hover:underline">Ver Landing / Descargar →</a>
                     </div>
                 </div>
             </main>
 
-            <!-- Pie de página institucional -->
+            <!-- PIE DE PÁGINA -->
             <footer class="bg-slate-800 text-slate-400 text-center py-3 text-xs">
                 &copy; 2026 Armada Nacional de Colombia - DIEDU
             </footer>
@@ -71,23 +79,21 @@ app.get("/", (req, res) => {
     `);
 });
 
-// Código de programación para la ruta específica de Get Underway 2.0
+// Ruta del Módulo Get Underway 2.0
 app.get("/get-underway", (req, res) => {
   res.send(
-    "<h2>Get Underway 2.0</h2><p>Módulo de conexión para el inicio de sesión de Moodle en desarrollo de código.</p>"
+    "<h2>Get Underway 2.0</h2><p>Código para la pasarela de autenticación de Moodle en desarrollo.</p>"
   );
 });
 
-// Código de programación para la ruta específica de NavySpeak
+// Ruta del Módulo NavySpeak
 app.get("/navyspeak", (req, res) => {
   res.send(
-    "<h2>NavySpeak</h2><p>Módulo de descarga y estadísticas de uso de la APK en desarrollo de código.</p>"
+    "<h2>NavySpeak</h2><p>Código para la landing page de descarga y control de uso de la APK en desarrollo.</p>"
   );
 });
 
-// Inicialización de la escucha de red del servidor
+// 4. INICIALIZACIÓN DEL PROCESO DEL SERVIDOR WEB
 app.listen(PORT, () => {
-  console.log(
-    `Servidor de Node.js escuchando activamente en el puerto ${PORT}`
-  );
+  console.log(`Servidor escuchando activamente a través del puerto: ${PORT}`);
 });
