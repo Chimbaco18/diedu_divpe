@@ -39,7 +39,7 @@ pool.getConnection((err, connection) => {
 });
 
 // 2. API ENDPOINT: AUTENTICACIÓN REAL CONTRA LAS TABLAS SQL
-// Al estar acoplado en app.js bajo '/navyspeak/api', este endpoint responde en '/navyspeak/api/login'
+// Este endpoint responde en la ruta POST: /navyspeak/api/login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
