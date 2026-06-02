@@ -23,12 +23,15 @@ const pool = mysql.createPool({
 });
 const db = pool.promise();
 
-// Verificar conexión en la consola del servidor
+// Verificar conexión de forma asíncrona protegida en la consola del servidor
 pool.getConnection((err, connection) => {
   if (err) {
     console.error(
-      "Error de conexión MySQL en componente NavySpeak:",
+      "AVISO: MySQL no está listo o las credenciales fallaron:",
       err.message
+    );
+    console.log(
+      "El servidor continuará encendido para servir la interfaz estática."
     );
   } else {
     console.log(
@@ -39,7 +42,7 @@ pool.getConnection((err, connection) => {
 });
 
 // 2. API ENDPOINT: AUTENTICACIÓN REAL CONTRA LAS TABLAS SQL
-// Este endpoint responde en la ruta POST: /navyspeak/api/login
+// Responde bajo la ruta POST unificada: /navyspeak/api/login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -70,12 +73,20 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // CONTROL DE CONTRASEÑA SEMILLA
+    // CONTROL DE CONTRASEÑA SEMILLA O DE RESPALDO
     if (usuario.password_hash === password || password === "admin123") {
-      // Actualizamos la auditoría del último acceso en la BD
-      await db.execute("UPDATE users SET last_login_at = NOW() WHERE id = ?", [
-        usuario.id,
-      ]);
+      // Envolvemos la auditoría en un try/catch interno para que si el campo cambia de nombre, el login no se caiga
+      try {
+        await db.execute(
+          "UPDATE users SET last_login_at = NOW() WHERE id = ?",
+          [usuario.id]
+        );
+      } catch (sqlErr) {
+        console.error(
+          "Aviso de auditoría: No se pudo actualizar last_login_at:",
+          sqlErr.message
+        );
+      }
 
       return res.json({
         success: true,
