@@ -34,4 +34,4 @@ app.use("/navyspeak/api", navySpeakRouter);
 app.get("/get-underway", (req, res) => {
   res.send(
     "<h2>Get Underway 2.0</h2><p>Módulo Moodle en desarrollo posterior.</p>"
-  );
+  )});
