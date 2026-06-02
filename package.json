@@ -1,15 +1,16 @@
 {
   "name": "diedu_divpe",
   "version": "1.0.0",
-  "description": "Repositorio inicializado.",
+  "description": "Portal bilingüismo con arquitectura modular de componentes",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "4.19.2",
+    "mysql2": "3.11.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
