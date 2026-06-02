@@ -10,7 +10,7 @@ const router = express.Router();
 // Middleware obligatorio para procesar formatos JSON dentro del módulo
 router.use(express.json());
 
-// 1. INICIALIZAR EL POOL DE CONEXIONES A MYSQL USANDO LAS VARIABLES DE ENTORNO
+// 1. INICIALIZAR EL POOL DE CONEXIONES A MYSQL USANDO LAS VARIABLES DE HOSTINGER
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "127.0.0.1",
   user: process.env.DB_USER,
@@ -23,7 +23,7 @@ const pool = mysql.createPool({
 });
 const db = pool.promise();
 
-// Verificar el estado de conexión del pool en los logs de tiempo de ejecución
+// Verificar conexión en la consola del servidor
 pool.getConnection((err, connection) => {
   if (err) {
     console.error(
@@ -38,8 +38,8 @@ pool.getConnection((err, connection) => {
   }
 });
 
-// 2. API ENDPOINT: PROCESAMIENTO DE AUTENTICACIÓN REAL CONTRA LA BASE DE DATOS
-// Al estar acoplado este router en app.js bajo '/navyspeak/api', este endpoint responde en '/navyspeak/api/login'
+// 2. API ENDPOINT: AUTENTICACIÓN REAL CONTRA LAS TABLAS SQL
+// Al estar acoplado en app.js bajo '/navyspeak/api', este endpoint responde en '/navyspeak/api/login'
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -48,7 +48,7 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    // Consultamos al usuario de forma segura utilizando sentencias preparadas contra inyecciones SQL
+    // Consultamos al usuario en la tabla 'users' estructurada por tu DDL
     const [rows] = await db.execute(
       "SELECT id, full_name, role, is_active, password_hash, mfa_required FROM users WHERE LOWER(email) = ?",
       [email.trim().toLowerCase()]
@@ -70,9 +70,9 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // CONTROL DE CONTRASEÑA EN TEXTO PLANO / SEMILLA DE PRUEBAS
+    // CONTROL DE CONTRASEÑA SEMILLA
     if (usuario.password_hash === password || password === "admin123") {
-      // Actualizamos la auditoría del último acceso en la tabla de datos correspondiente
+      // Actualizamos la auditoría del último acceso en la BD
       await db.execute("UPDATE users SET last_login_at = NOW() WHERE id = ?", [
         usuario.id,
       ]);
