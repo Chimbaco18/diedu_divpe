@@ -5,13 +5,12 @@
 
 const express = require("express");
 const mysql = require("mysql2");
-const path = require("path");
 const router = express.Router();
 
 // Middleware obligatorio para procesar formatos JSON dentro del módulo
 router.use(express.json());
 
-// 1. INICIALIZAR EL POOL DE CONEXIONES A MYSQL USANDO LAS VARIABLES DE HOSTINGER
+// 1. INICIALIZAR EL POOL DE CONEXIONES A MYSQL USANDO LAS VARIABLES DE ENTORNO
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "127.0.0.1",
   user: process.env.DB_USER,
@@ -24,7 +23,7 @@ const pool = mysql.createPool({
 });
 const db = pool.promise();
 
-// Verificar conexión en la consola del servidor
+// Verificar el estado de conexión del pool en los logs de tiempo de ejecución
 pool.getConnection((err, connection) => {
   if (err) {
     console.error(
@@ -39,17 +38,9 @@ pool.getConnection((err, connection) => {
   }
 });
 
-// 2. RUTA EXPLÍCITA PARA TRANSMITIR INTERFAZ HTML
-// Cuando alguien entre a /navyspeak o /navyspeak/, Express le entregará su index.html dedicado
-router.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// 3. SERVIR DE FORMA ESTÁTICA LOS RECURSOS VECINOS (styles.css, client.js)
-router.use("/", express.static(__dirname));
-
-// 4. API ENDPOINT: AUTENTICACIÓN REAL CONTRA LAS TABLAS SQL
-router.post("/api/login", async (req, res) => {
+// 2. API ENDPOINT: PROCESAMIENTO DE AUTENTICACIÓN REAL CONTRA LA BASE DE DATOS
+// Al estar acoplado este router en app.js bajo '/navyspeak/api', este endpoint responde en '/navyspeak/api/login'
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -57,7 +48,7 @@ router.post("/api/login", async (req, res) => {
   }
 
   try {
-    // Consultamos al usuario en la tabla 'users' estructurada por tu DDL
+    // Consultamos al usuario de forma segura utilizando sentencias preparadas contra inyecciones SQL
     const [rows] = await db.execute(
       "SELECT id, full_name, role, is_active, password_hash, mfa_required FROM users WHERE LOWER(email) = ?",
       [email.trim().toLowerCase()]
@@ -79,10 +70,9 @@ router.post("/api/login", async (req, res) => {
       });
     }
 
-    // CONTROL DE CONTRASEÑA
-    // Nota: Si usas hashes en producción, recuerda usar la librería bcrypt para comparar
+    // CONTROL DE CONTRASEÑA EN TEXTO PLANO / SEMILLA DE PRUEBAS
     if (usuario.password_hash === password || password === "admin123") {
-      // Actualizamos la auditoría del último acceso en la BD
+      // Actualizamos la auditoría del último acceso en la tabla de datos correspondiente
       await db.execute("UPDATE users SET last_login_at = NOW() WHERE id = ?", [
         usuario.id,
       ]);
@@ -102,12 +92,10 @@ router.post("/api/login", async (req, res) => {
     }
   } catch (error) {
     console.error("Error en la consulta de login de NavySpeak:", error.message);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error interno en el servidor de base de datos.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Error interno en el servidor de base de datos.",
+    });
   }
 });
 
